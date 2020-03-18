@@ -52,6 +52,27 @@ public:
 		return matrix;
 	};
 
+	bool isIdentity() const
+	{
+		int column = 0;
+		typename std::vector<std::vector<T>>::const_iterator it1 = m_els.cbegin();
+		while (it1 != m_els.cend())
+		{
+			std::vector<T> row = *it1;
+			for (int i = 0; i < row.size(); i++)
+			{
+				if (i == column && row[i] != 1)
+					return false;
+				if (i != column && row[i] != 0)
+					return false;
+			}
+			++it1;
+			column++;
+		}
+
+		return true;
+	};
+
 	friend bool operator==(const Matrix<T>& a, const Matrix<T>& b)
 	{
 		typename std::vector<std::vector<T>>::const_iterator it1 = a.m_els.cbegin();
