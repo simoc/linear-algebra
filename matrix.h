@@ -3,7 +3,9 @@
 #include <iostream>
 
 /**
- * Simple Matrix class
+ * \brief Simple Matrix class
+ *
+ * Provides operations on matrices of any dimension.
  */
 template<typename T>
 class Matrix
@@ -13,89 +15,142 @@ public:
 	{
 	};
 
-	Matrix(std::initializer_list<std::initializer_list<T>> matrix)
+	Matrix(const Matrix<T>& matrix)
 	{
-		for (const auto& row : matrix)
+		if (matrix.isValid())
 		{
-			m_els.push_back(row);
+			m_row_count = matrix.m_row_count;
+			m_col_count = matrix.m_col_count;
+			m_els = new T[m_row_count * m_col_count];
+			for (size_t i = 0;  i < m_row_count * m_col_count; i++)
+			{
+				m_els[i] = matrix.m_els[i];
+			}
 		}
 	};
 
-	Matrix<T> add(const Matrix<T> &b)
+	Matrix(std::initializer_list<std::initializer_list<T>> matrix)
 	{
-		Matrix<T> matrix;
+		/*
+		 * First check that there is at least one row, and all
+		 * rows have same number of columns.
+		 */
+		if (matrix.size() == 0)
+			return;
 
-		typename std::vector<std::vector<T>>::const_iterator it1 = m_els.cbegin();
-		typename std::vector<std::vector<T>>::const_iterator it2 = b.m_els.cbegin();
-		while (it1 != m_els.cend() && it2 != b.m_els.cend())
+		size_t element_count = 0;
+		size_t col_count = 0;
+		for (const auto& row : matrix)
 		{
-			std::vector<T> row1 = *it1;
-			std::vector<T> row2 = *it2;
+			if (row.size() == 0)
+				return;
 
-			std::vector<T> new_row;
-
-			typename std::vector<T>::const_iterator it3 = row1.cbegin();
-			typename std::vector<T>::const_iterator it4 = row2.cbegin();
-			while (it3 != row1.cend() && it4 != row2.cend())
-			{
-				new_row.push_back(*it3 + *it4);
-
-				++it3;
-				++it4;
-			}
-			matrix.m_els.push_back(new_row);
-
-			++it1;
-			++it2;
+			if (element_count == 0)
+				col_count = row.size();
+			else if (row.size() != col_count)
+				return;
+			element_count += row.size();
 		}
 
-		return matrix;
+		m_row_count = matrix.size();
+		m_col_count = col_count;
+		m_els = new T[element_count];
+
+		/*
+		 * Copy elements into array.
+		 */
+		size_t i = 0;
+		for (const auto& row : matrix)
+		{
+			for (const auto& el : row)
+			{
+				m_els[i++] = el;
+			}
+		}
+	};
+
+	~Matrix()
+	{
+		delete []m_els;
+	}
+
+	bool isValid() const
+	{
+		return (m_row_count > 0 && m_col_count > 0);
+	}
+
+	Matrix<T> add(const Matrix<T> &matrix)
+	{
+		if (m_row_count != matrix.m_row_count)
+			return Matrix<T>();
+		if (m_col_count != matrix.m_col_count)
+			return Matrix<T>();
+
+		Matrix<T> added = matrix;
+		for (size_t i = 0; i < m_row_count * m_col_count; i++)
+		{
+			added.m_els[i] = m_els[i] + matrix.m_els[i];
+		}
+		return added;
 	};
 
 	bool isIdentity() const
 	{
-		int column = 0;
-		typename std::vector<std::vector<T>>::const_iterator it1 = m_els.cbegin();
-		while (it1 != m_els.cend())
+		if (!isValid())
+			return false;
+
+		size_t col = 0;
+		for (size_t row = 0; row < m_row_count; row++)
 		{
-			std::vector<T> row = *it1;
-			for (int i = 0; i < row.size(); i++)
+			for (size_t col = 0; col < m_col_count; col++)
 			{
-				if (i == column && row[i] != 1)
+				if (row == col && m_els[row * m_col_count + col] != 1)
 					return false;
-				if (i != column && row[i] != 0)
+				if (row != col && m_els[row * m_col_count + col] != 0)
 					return false;
 			}
-			++it1;
-			column++;
 		}
-
 		return true;
 	};
 
+	Matrix<T>& operator=(const Matrix<T>& matrix)
+	{
+		if (this == &matrix)
+			return *this;
+
+		m_row_count = matrix.m_row_count;
+		m_col_count = matrix.m_col_count;
+		m_els = new T[m_row_count * m_col_count];
+		for (size_t i = 0;  i < m_row_count * m_col_count; i++)
+		{
+			m_els[i] = matrix.m_els[i];
+		}
+		return *this;
+	}
+
 	friend bool operator==(const Matrix<T>& a, const Matrix<T>& b)
 	{
-		typename std::vector<std::vector<T>>::const_iterator it1 = a.m_els.cbegin();
-		typename std::vector<std::vector<T>>::const_iterator it2 = b.m_els.cbegin();
-		while (it1 != a.m_els.cend() && it2 != b.m_els.cend())
-		{
-			if (*it1 != *it2)
-				return false;
+		if (a.m_row_count != b.m_row_count)
+			return false;
+		if (a.m_col_count != b.m_col_count)
+			return false;
 
-			++it1;
-			++it2;
+		for (size_t i = 0; i < a.m_row_count * a.m_col_count; i++)
+		{
+			if (a.m_els[i] != b.m_els[i])
+				return false;
 		}
 		return true;
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const Matrix<T>& matrix)
 	{
-		for (const auto& row : matrix.m_els)
+		for (size_t row = 0; row < matrix.m_row_count; row++)
 		{
 			os << "[";
-			for (const auto& el : row)
+			for (size_t col = 0; col < matrix.m_col_count; col++)
 			{
-				os << el << " ";
+				os << matrix.m_els[matrix.m_col_count * row + col] << " ";
 			}
 			os << "]" << std::endl;
 		}
@@ -103,6 +158,8 @@ public:
 	};
 
 private:
-	std::vector<std::vector<T>> m_els;
+	size_t m_row_count = 0;
+	size_t m_col_count = 0;
+	T *m_els = nullptr;
 };
 
