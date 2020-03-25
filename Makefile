@@ -1,5 +1,8 @@
 all: la gtest-la
 
+test: gtest-la
+	./gtest-la
+
 la: main.cpp matrix.h
 	gcc -Wall -g -std=c++11 -o la main.cpp -lstdc++
 

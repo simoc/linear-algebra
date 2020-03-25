@@ -8,3 +8,6 @@ install:
 env:
   - GOOGLETESTDIR=googletest-release-1.10.0
 
+scripts:
+  - make && make test
+
