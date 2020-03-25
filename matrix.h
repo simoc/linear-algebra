@@ -99,7 +99,6 @@ public:
 		if (!isValid())
 			return false;
 
-		size_t col = 0;
 		for (size_t row = 0; row < m_row_count; row++)
 		{
 			for (size_t col = 0; col < m_col_count; col++)
