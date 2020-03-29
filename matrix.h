@@ -99,6 +99,31 @@ public:
 		return added;
 	};
 
+	/**
+	 * Calculate determinant of square matrix.
+	 */
+	T determinant()
+	{
+		if (!isValid())
+			return 0;
+		if (m_row_count != m_col_count)
+			return 0;
+
+		if (m_row_count == 1)
+			return m_els[0];
+
+		T det = 0;
+		for (size_t col = 0; col < m_col_count; col++)
+		{
+			T subdet = m_els[col] * subMatrix(0, col).determinant();
+			if (col % 2 == 0)
+				det += subdet;
+			else
+				det -= subdet;
+		}
+		return det;
+	}
+
 	bool isIdentity() const
 	{
 		if (!isValid())
@@ -165,6 +190,30 @@ private:
 	size_t m_row_count = 0;
 	size_t m_col_count = 0;
 	T *m_els = nullptr;
+
+	/**
+	 * Create sub-matrix without one given row and column
+	 */
+	Matrix<T> subMatrix(size_t row_to_skip, size_t col_to_skip)
+	{
+		Matrix<T> sub;
+		sub.m_row_count = m_row_count - 1;
+		sub.m_col_count = m_col_count - 1;
+		sub.m_els = new T[sub.m_row_count * sub.m_col_count];
+
+		size_t index = 0;
+		for (size_t row = 0; row < m_row_count; row++)
+		{
+			for (size_t col = 0; col < m_col_count; col++)
+			{
+				if (row != row_to_skip && col != col_to_skip)
+				{
+					sub.m_els[index++] = m_els[row * m_col_count + col];
+				}
+			}
+		}
+		return sub;
+	};
 };
 
 #endif // MATRIX_H
