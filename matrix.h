@@ -1,3 +1,8 @@
+#pragma once
+
+#ifndef MATRIX_H
+#define MATRIX_H
+
 #include <vector>
 #include <initializer_list>
 #include <iostream>
@@ -162,3 +167,4 @@ private:
 	T *m_els = nullptr;
 };
 
+#endif // MATRIX_H
